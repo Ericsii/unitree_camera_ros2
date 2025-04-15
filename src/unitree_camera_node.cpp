@@ -134,6 +134,7 @@ GstFlowReturn UnitreeCameraNode::gst_callback(GstAppSink *sink) {
     int width, height;
     gst_structure_get_int(caps_struct, "width", &width);
     gst_structure_get_int(caps_struct, "height", &height);
+    // TODO: Convert the buffer to an OpenCV image and publish it
   }
 
   // Free the sample
