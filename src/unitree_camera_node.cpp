@@ -61,9 +61,10 @@ bool UnitreeCameraNode::init_gstreamer() {
       "udpsrc address=" + udp_multicast_ip_ +
       " port=" + std::to_string(udp_multicast_port_) +
       " multicast-iface=" + multicast_interface_ +
-      " ! queue ! application/x-rtp, media=video, encoding-name=H264 ! "
-      "rtph264depay ! h264parse ! avdec_h264 ! videoconvert ! autovideosink ! "
-      "appsink name=appsink emit-signals=true";
+      " ! queue ! application/x-rtp, media=video, encoding-name=H264"
+      " ! rtph264depay ! h264parse ! avdec_h264 ! videoconvert ! autovideosink"
+      " ! video/x-raw,format=BGR"
+      " ! appsink name=appsink emit-signals=true";
 
   GError *error = nullptr;
   // Create the GStreamer pipeline
