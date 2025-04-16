@@ -1,4 +1,22 @@
+// Copyright 2025 Yunlong Feng
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include <unitree_camera_ros2/unitree_camera_node.hpp>
+
+#include <cv_bridge/cv_bridge.h>
+#include <opencv2/opencv.hpp>
+#include <sensor_msgs/msg/image.hpp>
 
 namespace unitree_camera_ros2 {
 
@@ -6,8 +24,22 @@ UnitreeCameraNode::UnitreeCameraNode(const rclcpp::NodeOptions &options)
     : Node("unitree_camera_node", options) {
   this->get_parameters();
 
+  camera_info_manager_ =
+      std::make_unique<camera_info_manager::CameraInfoManager>(
+          this, camera_name_, camera_info_url_);
+  if (camera_info_manager_->loadCameraInfo(camera_info_url_)) {
+    RCLCPP_INFO(this->get_logger(), "Camera info loaded successfully");
+  } else {
+    RCLCPP_WARN(this->get_logger(), "Failed to load camera info from URL: %s",
+                camera_info_url_.c_str());
+  }
+  camera_publisher_ = std::make_unique<image_transport::CameraPublisher>(
+      image_transport::create_camera_publisher(
+          this, camera_name_ + "/image_raw",
+          rclcpp::SensorDataQoS().get_rmw_qos_profile()));
+
   if (!init_gstreamer()) {
-    RCLCPP_ERROR(this->get_logger(), "Failed to initialize GStreamer");
+    RCLCPP_FATAL(this->get_logger(), "Failed to initialize GStreamer");
     return;
   }
 }
@@ -17,6 +49,7 @@ void UnitreeCameraNode::get_parameters() {
   camera_name_ = this->declare_parameter("camera_name", "unitree_camera");
   camera_frame_id_ = this->declare_parameter("camera_frame_id",
                                              "unitree_camera_optical_frame");
+  camera_info_url_ = this->declare_parameter("camera_info_url", "");
   udp_multicast_ip_ = this->declare_parameter("udp_multicast_ip", "230.1.1.1");
   udp_multicast_port_ = this->declare_parameter("udp_multicast_port", 1720);
   multicast_interface_ = this->declare_parameter("multicast_interface", "eth0");
@@ -135,7 +168,20 @@ GstFlowReturn UnitreeCameraNode::gst_callback(GstAppSink *sink) {
     int width, height;
     gst_structure_get_int(caps_struct, "width", &width);
     gst_structure_get_int(caps_struct, "height", &height);
+
     // TODO: Convert the buffer to an OpenCV image and publish it
+    cv::Mat image(height, width, CV_8UC3, (char *)map.data, map.size);
+
+    // Create a header for the image
+    std_msgs::msg::Header header;
+    sensor_msgs::msg::Image msg;
+    header.stamp = this->now();
+    header.frame_id = camera_frame_id_;
+    cv_bridge::CvImage cv_image{header, "bgr8", image};
+    cv_image.toImageMsg(msg);
+
+    // Publish the image
+    camera_publisher_->publish(msg, camera_info_manager_->getCameraInfo());
   }
 
   // Free the sample
@@ -143,3 +189,6 @@ GstFlowReturn UnitreeCameraNode::gst_callback(GstAppSink *sink) {
   return GST_FLOW_OK;
 }
 } // namespace unitree_camera_ros2
+
+#include <rclcpp_components/register_node_macro.hpp>
+RCLCPP_COMPONENTS_REGISTER_NODE(unitree_camera_ros2::UnitreeCameraNode)

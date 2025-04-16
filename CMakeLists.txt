@@ -19,7 +19,10 @@ endif()
 set(ros_dependencies
   rclcpp
   rclcpp_components
+  sensor_msgs
   image_transport
+  cv_bridge
+  camera_info_manager
 )
 
 find_package(ament_cmake REQUIRED)
@@ -30,6 +33,7 @@ endforeach()
 
 # Thirdparty packages
 find_package(PkgConfig REQUIRED)
+find_package(OpenCV REQUIRED)
 
 pkg_search_module(gstreamer REQUIRED IMPORTED_TARGET gstreamer-1.0>=1.4)
 pkg_search_module(gstreamer-sdp REQUIRED IMPORTED_TARGET gstreamer-sdp-1.0>=1.4)
@@ -41,6 +45,7 @@ set(other_dependencies
   PkgConfig::gstreamer-sdp
   PkgConfig::gstreamer-app
   PkgConfig::gstreamer-video
+  ${OpenCV_LIBRARIES}
 )
 
 # ------------- Build library ------------- #
