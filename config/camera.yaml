@@ -1,0 +1,17 @@
+/front_camera_node:
+  ros__parameters:
+    camera_name: "front_camera"
+    camera_frame_id: "front_camera_frame"
+    camera_info_url: "package://unitree_camera_ros2/config/front_camera.yaml"
+    udp_multicast_ip: 230.1.1.1
+    udp_multicast_port: 1720
+    multicast_interface: "eth0"
+
+/rear_camera_node:
+  ros__parameters:
+    camera_name: "rear_camera"
+    camera_frame_id: "rear_camera_frame"
+    camera_info_url: "package://unitree_camera_ros2/config/rear_camera.yaml"
+    udp_multicast_ip: 230.1.1.1
+    udp_multicast_port: 1721
+    multicast_interface: "eth0"

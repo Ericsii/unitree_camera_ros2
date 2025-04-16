@@ -42,6 +42,16 @@ UnitreeCameraNode::UnitreeCameraNode(const rclcpp::NodeOptions &options)
     RCLCPP_FATAL(this->get_logger(), "Failed to initialize GStreamer");
     return;
   }
+  start_pipeline();
+}
+
+UnitreeCameraNode::~UnitreeCameraNode() {
+  stop_pipeline();
+  gst_object_unref(appsink_);
+  gst_object_unref(pipeline_);
+  appsink_ = nullptr;
+  pipeline_ = nullptr;
+  RCLCPP_INFO(this->get_logger(), "GStreamer resources released");
 }
 
 void UnitreeCameraNode::get_parameters() {
@@ -169,19 +179,24 @@ GstFlowReturn UnitreeCameraNode::gst_callback(GstAppSink *sink) {
     gst_structure_get_int(caps_struct, "width", &width);
     gst_structure_get_int(caps_struct, "height", &height);
 
-    // TODO: Convert the buffer to an OpenCV image and publish it
+    // Create an OpenCV image from the buffer
     cv::Mat image(height, width, CV_8UC3, (char *)map.data, map.size);
 
-    // Create a header for the image
-    std_msgs::msg::Header header;
+    // Create image message
     sensor_msgs::msg::Image msg;
-    header.stamp = this->now();
-    header.frame_id = camera_frame_id_;
-    cv_bridge::CvImage cv_image{header, "bgr8", image};
+    msg.header.stamp = this->now();
+    msg.header.frame_id = camera_frame_id_;
+    cv_bridge::CvImage cv_image{msg.header, "bgr8",
+                                image}; // Check the lifetime of image
     cv_image.toImageMsg(msg);
 
     // Publish the image
     camera_publisher_->publish(msg, camera_info_manager_->getCameraInfo());
+  } else {
+    RCLCPP_ERROR(this->get_logger(), "Failed to map buffer");
+    gst_buffer_unmap(buffer, &map);
+    gst_sample_unref(sample);
+    return GST_FLOW_ERROR;
   }
 
   // Free the sample
