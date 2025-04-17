@@ -47,10 +47,6 @@ UnitreeCameraNode::UnitreeCameraNode(const rclcpp::NodeOptions &options)
 
 UnitreeCameraNode::~UnitreeCameraNode() {
   stop_pipeline();
-  gst_object_unref(appsink_);
-  gst_object_unref(pipeline_);
-  appsink_ = nullptr;
-  pipeline_ = nullptr;
   RCLCPP_INFO(this->get_logger(), "GStreamer resources released");
 }
 
@@ -153,10 +149,14 @@ void UnitreeCameraNode::start_pipeline() {
 void UnitreeCameraNode::stop_pipeline() {
   // Stop the GStreamer pipeline
   gst_element_set_state(pipeline_, GST_STATE_NULL);
-  gst_object_unref(pipeline_);
+  if (pipeline_ != nullptr) {
+    gst_object_unref(pipeline_);
+  }
   pipeline_ = nullptr;
   RCLCPP_INFO(this->get_logger(), "GStreamer pipeline stopped");
-  gst_object_unref(appsink_);
+  if (appsink_ != nullptr) {
+    gst_object_unref(appsink_);
+  }
   appsink_ = nullptr;
 }
 

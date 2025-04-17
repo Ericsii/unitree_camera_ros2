@@ -26,13 +26,13 @@ def generate_launch_description():
         composable_node_descriptions=[
             ComposableNode(
                 package="unitree_camera_ros2",
-                plugin="unitree_camera_ros2::CameraNode",
+                plugin="unitree_camera_ros2::UnitreeCameraNode",
                 name="front_camera_node",
                 parameters=[config_path],
             ),
             ComposableNode(
                 package="unitree_camera_ros2",
-                plugin="unitree_camera_ros2::CameraNode",
+                plugin="unitree_camera_ros2::UnitreeCameraNode",
                 name="rear_camera_node",
                 parameters=[config_path],
             )
