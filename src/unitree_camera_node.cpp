@@ -91,9 +91,16 @@ static GstFlowReturn trampoline_new_sample(GstAppSink *appsink,
   }
 }
 
+static std::once_flag gst_init_flag_;
+
 bool UnitreeCameraNode::init_gstreamer() {
   // Initialize GStreamer
-  gst_init(nullptr, nullptr);
+  std::call_once(gst_init_flag_, []() {
+    gst_init(nullptr, nullptr);
+    RCLCPP_INFO(rclcpp::get_logger(
+                    "gst_init"), // 这里使用全局 logger 或传递 logger 实例
+                "GStreamer initialized globally.");
+  });
 
   // Create the GStreamer pipeline
   std::string pipeline_str =
