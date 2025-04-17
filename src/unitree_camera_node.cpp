@@ -180,7 +180,8 @@ GstFlowReturn UnitreeCameraNode::gst_callback(GstAppSink *sink) {
     gst_structure_get_int(caps_struct, "height", &height);
 
     // Create an OpenCV image from the buffer
-    cv::Mat image(height, width, CV_8UC3, (char *)map.data, map.size);
+    cv::Mat image(cv::Size(width, height), CV_8UC3, (void *)map.data,
+                  cv::Mat::AUTO_STEP);
 
     // Create image message
     sensor_msgs::msg::Image msg;
