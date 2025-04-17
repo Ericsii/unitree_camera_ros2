@@ -187,7 +187,7 @@ GstFlowReturn UnitreeCameraNode::gst_callback(GstAppSink *sink) {
     msg.header.stamp = this->now();
     msg.header.frame_id = camera_frame_id_;
     cv_bridge::CvImage cv_image{msg.header, "bgr8",
-                                image}; // Check the lifetime of image
+                                image.clone()}; // Check the lifetime of image
     cv_image.toImageMsg(msg);
 
     // Publish the image
