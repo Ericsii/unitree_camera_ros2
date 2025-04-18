@@ -13,34 +13,24 @@ def generate_launch_description():
         [package_path, 'config', 'camera.yaml']
     )
 
-    container = Node(
-        package="rclcpp_components",
-        executable="component_container_mt",
-        name="unitree_camera_container",
+    front_camera_node = Node(
+        package="unitree_camera_ros2",
+        executable="unitree_camera_node",
+        name="front_camera_node",
         output="both",
         parameters=[config_path],
     )
 
-    load_composable_nodes = LoadComposableNodes(
-        target_container="unitree_camera_container",
-        composable_node_descriptions=[
-            ComposableNode(
-                package="unitree_camera_ros2",
-                plugin="unitree_camera_ros2::UnitreeCameraNode",
-                name="front_camera_node",
-                parameters=[config_path],
-            ),
-            ComposableNode(
-                package="unitree_camera_ros2",
-                plugin="unitree_camera_ros2::UnitreeCameraNode",
-                name="rear_camera_node",
-                parameters=[config_path],
-            )
-        ],
+    rear_camera_node = Node(
+        package="unitree_camera_ros2",
+        executable="unitree_camera_node",
+        name="rear_camera_node",
+        output="both",
+        parameters=[config_path],
     )
 
     ld = LaunchDescription()
 
-    ld.add_action(container)
-    ld.add_action(load_composable_nodes)
+    ld.add_action(front_camera_node)
+    ld.add_action(rear_camera_node)
     return ld
