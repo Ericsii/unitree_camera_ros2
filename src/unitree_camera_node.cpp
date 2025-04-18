@@ -129,7 +129,6 @@ bool UnitreeCameraNode::init_gstreamer() {
     return false;
   }
   gst_app_sink_set_emit_signals(GST_APP_SINK(appsink_), true);
-  gst_app_sink_set_drop(GST_APP_SINK(appsink_), true);
   gst_app_sink_set_drop(GST_APP_SINK(appsink_), TRUE);
   gst_app_sink_set_max_buffers(GST_APP_SINK(appsink_), 1);
 
