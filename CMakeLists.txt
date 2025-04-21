@@ -59,12 +59,12 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 target_link_libraries(${PROJECT_NAME}
   ${other_dependencies}
 )
+ament_target_dependencies(${PROJECT_NAME} ${ros_dependencies})
+
 rclcpp_components_register_node(${PROJECT_NAME}
   PLUGIN "unitree_camera_ros2::UnitreeCameraNode"
   EXECUTABLE unitree_camera_node
 )
-
-ament_target_dependencies(${PROJECT_NAME} ${ros_dependencies})
 
 ament_export_targets(export_${PROJECT_NAME})
 ament_export_dependencies(${ros_dependencies})
